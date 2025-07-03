@@ -116,7 +116,7 @@ int EpdIf::IfInit(void) {
 
     //Initialize the SPI bus
     #if ESP_IDF_VERSION_MAJOR >= 4
-        ret=spi_bus_initialize(HSPI_HOST, &buscfg, 0);
+        ret=spi_bus_initialize(SPI2_HOST, &buscfg, 0);
     #else
         ret=spi_bus_initialize(SPI_HOST, &buscfg, 0);
     #endif
@@ -147,7 +147,7 @@ int EpdIf::IfInit(void) {
 
     //Attach the EPD to the SPI bus
     #if ESP_IDF_VERSION_MAJOR >= 4
-        ret=spi_bus_add_device(HSPI_HOST, &devcfg, &spi);
+        ret=spi_bus_add_device(SPI2_HOST, &devcfg, &spi);
     #else
         ret=spi_bus_add_device(SPI_HOST, &devcfg, &spi);
     #endif
