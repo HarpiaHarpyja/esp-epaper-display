@@ -38,7 +38,7 @@
 
 // SPI host
 #if ESP_IDF_VERSION_MAJOR < 4
-#define SPI_HOST    HSPI_HOST
+#define SPI_HOST    SPI2_HOST
 #endif
 
 #ifdef __cplusplus
