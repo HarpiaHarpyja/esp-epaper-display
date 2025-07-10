@@ -47,15 +47,27 @@ extern "C" {
 
 class EpdIf {
 public:
-    EpdIf(void);
-    ~EpdIf(void);
+    EpdIf(void) {};
+    virtual ~EpdIf(void){};
 
-    static int  IfInit(void);
-    static void DigitalWrite(unsigned int pin, int value); 
-    static int  DigitalRead(unsigned int pin);
-    static void DelayMs(unsigned int delaytime);
-    static void SpiTransfer(unsigned char data);
+    virtual int  IfInit(bool spi_initialize) =0 ;
+    virtual void DigitalWrite(unsigned int pin, int value) =0 ; 
+    virtual int  DigitalRead(unsigned int pin) =0 ;
+    virtual void DelayMs(unsigned int delaytime) =0 ;
+    virtual void SpiTransfer(unsigned char data) =0 ;
 };
+
+class EpdIfDefault : public EpdIf {
+public:
+    int IfInit(bool spi_initialize) override;
+    void DigitalWrite(unsigned int pin, int value) override; 
+    int  DigitalRead(unsigned int pin) override;
+    void DelayMs(unsigned int delaytime) override;
+    void SpiTransfer(unsigned char data) override;
+private:
+    virtual int SpiInit();    
+};
+
 #ifdef __cplusplus
 }
 #endif
