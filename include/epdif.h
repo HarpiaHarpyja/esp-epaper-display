@@ -25,6 +25,8 @@
  * THE SOFTWARE.
  */
 
+#include "driver/spi_master.h"
+
 #ifndef EPDIF_H
 #define EPDIF_H
 
@@ -50,23 +52,28 @@ public:
     EpdIf(void) {};
     virtual ~EpdIf(void){};
 
-    virtual int  IfInit(bool spi_initialize) =0 ;
-    virtual void DigitalWrite(unsigned int pin, int value) =0 ; 
-    virtual int  DigitalRead(unsigned int pin) =0 ;
-    virtual void DelayMs(unsigned int delaytime) =0 ;
-    virtual void SpiTransfer(unsigned char data) =0 ;
+    virtual int  IfInit(bool spi_initialize = true);
+    virtual void DigitalWrite(unsigned int pin, int value); 
+    virtual int  DigitalRead(unsigned int pin);
+    virtual void DelayMs(unsigned int delaytime);
+    virtual void SpiTransfer(unsigned char data);
+protected:
+    spi_device_handle_t spi_handle;
+    virtual int SpiInit();
+    virtual void AddDevice(int cs_pin); // Default to CS_PIN
 };
 
-class EpdIfDefault : public EpdIf {
-public:
-    int IfInit(bool spi_initialize) override;
-    void DigitalWrite(unsigned int pin, int value) override; 
-    int  DigitalRead(unsigned int pin) override;
-    void DelayMs(unsigned int delaytime) override;
-    void SpiTransfer(unsigned char data) override;
-private:
-    virtual int SpiInit();    
-};
+// class EpdIfDefault : public EpdIf {
+// public:
+//     virtual int IfInit(bool spi_initialize);
+//     virtual void DigitalWrite(unsigned int pin, int value); 
+//     virtual int  DigitalRead(unsigned int pin);
+//     virtual void DelayMs(unsigned int delaytime);
+//     virtual void SpiTransfer(unsigned char data);
+// protected:
+//     virtual int SpiInit();
+//     virtual void AddDevice();    
+// };
 
 #ifdef __cplusplus
 }

@@ -39,15 +39,13 @@
 
 #include "epdif.h"
 
-static spi_device_handle_t spi;
-
 /**
  * @brief Escreve um valor lógico (HIGH/LOW) em um pino GPIO.
  * 
  * @param pin Número do pino GPIO.
  * @param value Valor lógico a ser escrito (0 ou 1).
  */
-void EpdIfDefault::DigitalWrite(unsigned int pin, int value) {
+void EpdIf::DigitalWrite(unsigned int pin, int value) {
     // ESP_LOGI("EPDIF", "Set Pin %i: %i", pin, value);
     gpio_set_level((gpio_num_t)pin, value);
 }
@@ -58,7 +56,7 @@ void EpdIfDefault::DigitalWrite(unsigned int pin, int value) {
  * @param pin Número do pino GPIO.
  * @return Valor lógico do pino (0 ou 1).
  */
-int EpdIfDefault::DigitalRead(unsigned int pin) {
+int EpdIf::DigitalRead(unsigned int pin) {
     int level = gpio_get_level((gpio_num_t)pin);
     return level;
 }
@@ -70,7 +68,7 @@ int EpdIfDefault::DigitalRead(unsigned int pin) {
  * 
  * @param delaytime Tempo em milissegundos para aguardar.
  */
-void EpdIfDefault::DelayMs(unsigned int delaytime) {
+void EpdIf::DelayMs(unsigned int delaytime) {
     vTaskDelay(delaytime / portTICK_PERIOD_MS);
 }
 
@@ -81,7 +79,7 @@ void EpdIfDefault::DelayMs(unsigned int delaytime) {
  * 
  * @param data Byte a ser enviado.
  */
-void EpdIfDefault::SpiTransfer(unsigned char data) {
+void EpdIf::SpiTransfer(unsigned char data) {
     esp_err_t ret;
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));       //Zero out the transaction
@@ -91,20 +89,43 @@ void EpdIfDefault::SpiTransfer(unsigned char data) {
     t.tx_data[1] = data;
     t.tx_data[2] = data;
     t.tx_data[3] = data;
-    ret = spi_device_transmit(spi, &t);  //Transmit!
+    ret = spi_device_transmit(spi_handle, &t);  //Transmit!
     assert(ret==ESP_OK);            //Should have had no issues.
 }
 
+void EpdIf::AddDevice(int cs_pin = CS_PIN) {
+
+    // Adição do dispositivo SPI (EPD)
+    spi_device_interface_config_t devcfg;
+    memset(&devcfg, 0, sizeof(devcfg));
+    devcfg.command_bits = 0;
+    devcfg.address_bits = 0;
+    devcfg.dummy_bits = 0;
+    devcfg.clock_speed_hz = 2*1000*1000;
+    devcfg.mode = 0;
+    devcfg.spics_io_num = cs_pin;
+    devcfg.queue_size = 1;
+
+    esp_err_t ret;
+    //Attach the EPD to the SPI bus
+    #if ESP_IDF_VERSION_MAJOR >= 4
+        ret=spi_bus_add_device(SPI2_HOST, &devcfg, &spi_handle);
+    #else
+        ret=spi_bus_add_device(SPI_HOST, &devcfg, &spi_handle);
+    #endif
+
+    assert(ret==ESP_OK);
+}
 
 /**
  * @brief Inicializa o barramento SPI e configura o dispositivo SPI.
  * 
  * @return int,  0 em sucesso, código de erro caso contrário.
  */
-int EpdIfDefault::SpiInit() {
+int EpdIf::SpiInit() {
     // Liberação de recursos SPI existentes
-    if(spi) {
-        spi_bus_remove_device(spi);
+    if(spi_handle) {
+        spi_bus_remove_device(spi_handle);
         
     }
 
@@ -143,29 +164,8 @@ int EpdIfDefault::SpiInit() {
     }
     assert(ret==ESP_OK);
 
-    // Adição do dispositivo SPI (EPD)
-    spi_device_interface_config_t devcfg;
-    memset(&devcfg, 0, sizeof(devcfg));
-    devcfg.command_bits = 0;
-    devcfg.address_bits = 0;
-    devcfg.dummy_bits = 0;
-    devcfg.clock_speed_hz = 2*1000*1000;
-    devcfg.mode = 0;
-    devcfg.spics_io_num = CS_PIN;
-    devcfg.queue_size = 1;
-
-    //Attach the EPD to the SPI bus
-    #if ESP_IDF_VERSION_MAJOR >= 4
-        ret=spi_bus_add_device(SPI2_HOST, &devcfg, &spi);
-    #else
-        ret=spi_bus_add_device(SPI_HOST, &devcfg, &spi);
-    #endif
-
-    assert(ret==ESP_OK);
-
     return 0;
 }
-
 
 /**
  * @brief Inicializa a interface SPI e os pinos GPIO necessários.
@@ -173,7 +173,7 @@ int EpdIfDefault::SpiInit() {
  * @param spi_initialize Flag para inicializar ou não o SPI, pode ja ter sido inicializado
  * @return 0 em sucesso, código de erro caso contrário.
  */
-int EpdIfDefault::IfInit(bool spi_initialize) {
+int EpdIf::IfInit(bool spi_initialize) {
 
     // Configuração dos GPIOs de controle
     // Pinos de saída (DC, RST)
@@ -202,6 +202,8 @@ int EpdIfDefault::IfInit(bool spi_initialize) {
         SpiInit(); // Initialize SPI bus
         ESP_LOGI("EPDIF", "SPI initialized. Cs pin: %d, MOSI: %d, CLK: %d", CS_PIN, MOSI_PIN, CLK_PIN);
     }
+
+    AddDevice(); // Add EPD device to SPI bus
 
     return 0;
 }

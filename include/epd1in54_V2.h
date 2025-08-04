@@ -55,8 +55,8 @@ public:
 	Epd(EpdIf* epd_if);
 	~Epd();
 	// int  Init(void);
-	int LDirInit(bool spi_initialize = true);
-	int HDirInit(bool spi_initialize = true);
+	int LDirInit(bool spi_initialize);
+	int HDirInit(bool spi_initialize);
 	void SendCommand(unsigned char command);
 	void SendData(unsigned char data);
 	void WaitUntilIdle(void);
