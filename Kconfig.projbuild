@@ -21,37 +21,37 @@ endchoice
 
 config MOSI_PIN
     int "DATAIN (MOSI/DIN) Pin number"
-    default 14
+    default 10
     help
         set the pin to be connected to mosi/din pin of display
 
 config CLK_PIN
     int "CLOCK (CLK/SCK) Pin number"
-    default 13
+    default 8
     help
         set the pin to be connected to clk/sck pin of display
 
 config CS_PIN
     int "CHIPSELECT (CS) Pin number"
-    default 15
+    default 21
     help
         set the pin to be connected to cs pin of display
 
 config DC_PIN
     int "DATA/COMMAND (DC) Pin number"
-    default 27
+    default 6
     help
         set the pin to be connected to dc pin of display
 
 config RST_PIN
     int "RESET (RST) Pin number"
-    default 26
+    default 2
     help
         set the pin to be connected to rst pin of display
 
 config BUSY_PIN
     int "BUSY (BUSY) Pin number"
-    default 25
+    default 3
     help
         set the pin to be connected to busy pin of display
 
